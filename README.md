@@ -17,7 +17,8 @@ Huge thanks to David Watts for providing the base for the web interface code! Ch
 
 ### Instructions
 
-- Instructions for wiring up the display can be found [here](https://youtu.be/YvU_ZfF7vs4).
+- Instructions for getting set up with the display can be found [here](https://youtu.be/YvU_ZfF7vs4). Wring [here](https://raw.githubusercontent.com/witnessmenow/LED-Matrix-Mario-Display/master/Wiring.png)
+- Download this repo
 - Open up "DisplayWithWebscokets" in the Arduino IDE.
 - Update secret.h with your WiFi details.
 - Upload the sketch to your board.
