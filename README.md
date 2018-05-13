@@ -9,9 +9,9 @@ Still a WIP project
 
 Feel free to reach out if you have any questions:
 
-[YouTube](https://www.youtube.com/c/BrianLough)
-[Twitch](https://www.twitch.tv/brianlough)
-[Twitter](https://twitter.com/witnessmenow)
+- [YouTube](https://www.youtube.com/c/BrianLough)
+- [Twitch](https://www.twitch.tv/brianlough)
+- [Twitter](https://twitter.com/witnessmenow)
 
 Huge thanks to David Watts for providing the base for the web interface code! Check out his channel [here](https://www.youtube.com/user/MrDavidJWatts)
 
