@@ -75,26 +75,30 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       }
       break;
     case WStype_TEXT:
-      Serial.printf("[%u] get Text: %s\n", num, payload);
+      // Serial.printf("[%u] get Text: %s\n", num, payload);
       inPayload = String((char *) payload);
-      Serial.println(inPayload);
+      // Serial.println(inPayload);
 
-      firstComma = inPayload.indexOf(",");
-      secondComma = inPayload.lastIndexOf(",");
+      if (inPayload == "CLEAR") {
+        clearDisplay();
+      } else {
+        firstComma = inPayload.indexOf(",");
+        secondComma = inPayload.lastIndexOf(",");
 
-      x = inPayload.substring(0, firstComma).toInt();
-      y = inPayload.substring(firstComma + 1, secondComma).toInt();
-      colourString = inPayload.substring(secondComma + 1);
-      colour = strtol(colourString.c_str(), NULL, 0);
+        x = inPayload.substring(0, firstComma).toInt();
+        y = inPayload.substring(firstComma + 1, secondComma).toInt();
+        colourString = inPayload.substring(secondComma + 1);
+        colour = strtol(colourString.c_str(), NULL, 0);
 
-      Serial.print("X: ");
-      Serial.println(x);
-      Serial.print("Y: ");
-      Serial.println(y);
-      Serial.print("Colour: ");
-      Serial.println(colour, HEX);
+        // Serial.print("X: ");
+        // Serial.println(x);
+        // Serial.print("Y: ");
+        // Serial.println(y);
+        // Serial.print("Colour: ");
+        // Serial.println(colour, HEX);
 
-      display.drawPixel(x , y, colour);
+        display.drawPixel(x , y, colour);
+      }
 
 
       // send message to client
@@ -119,6 +123,14 @@ void display_updater()
 
   display.display(70);
 
+}
+
+void clearDisplay(){
+  for(int i = 0; i < 64; i++){
+    for(int j = 0; j < 32; j++){
+      display.drawPixel(i , j, 0x0000);
+    }
+  }
 }
 
 void setup() {

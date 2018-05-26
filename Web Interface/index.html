@@ -2,125 +2,171 @@
 <!-- Original code by David Watts -->
 <!-- https://www.youtube.com/user/MrDavidJWatts -->
 <html>
-<head><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script type="text/javascript" src="jqColorPicker.min.js"></script>
 	<script type="text/javascript">
-	function getRGB(str){
-  var match = str.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d?))\))?/);
-  return "[" + match[1] + "," + match[2] + "," + match[3] + "]";
-  }
+		function getRGB(str) {
+			var match = str.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d?))\))?/);
+			return "[" + match[1] + "," + match[2] + "," + match[3] + "]";
+		}
+	</script>
+	<style type="text/css">
+		/* DivTable.com */
 
+		.divTable {
+			display: table;
 
-</script>
-<style type="text/css">
-	/* DivTable.com */
-.divTable{
-	display: table;
+		}
 
-}
-.divTableRow {
-	display: table-row;
-}
-.divTableHeading {
-	background-color: #EEE;
-	display: table-header-group;
-}
-.divTableCell, .divTableHead {
-	border: 1px solid #999999;
-	display: table-cell;
-	height: 20px;
-	width: 20px;
+		.divTableRow {
+			display: table-row;
+		}
 
-}
-.divTableHeading {
-	background-color: #EEE;
-	display: table-header-group;
-	font-weight: bold;
-}
-.divTableFoot {
-	background-color: #EEE;
-	display: table-footer-group;
-	font-weight: bold;
-}
-.divTableBody {
-	display: table-row-group;
-}
-	#createMap{
-		margin-bottom: 20px;
-	}
+		.divTableHeading {
+			background-color: #EEE;
+			display: table-header-group;
+		}
+
+		.divTableCell,
+		.divTableHead {
+			border: 1px solid #999999;
+			display: table-cell;
+			height: 20px;
+			width: 20px;
+
+		}
+
+		.divTableHeading {
+			background-color: #EEE;
+			display: table-header-group;
+			font-weight: bold;
+		}
+
+		.divTableFoot {
+			background-color: #EEE;
+			display: table-footer-group;
+			font-weight: bold;
+		}
+
+		.divTableBody {
+			display: table-row-group;
+		}
+
+		.unselectable {
+			-moz-user-select: -moz-none;
+			-khtml-user-select: none;
+			-webkit-user-select: none;
+			-o-user-select: none;
+			user-select: none;
+		}
+
+		#createMap {
+			margin-bottom: 20px;
+		}
 	</style>
-<meta charset="utf-8">
-<title>Untitled Document</title>
+	<meta charset="utf-8">
+	<title>LED Matrix WebDraw</title>
 </head>
 
 <body>
 	<input class="color no-alpha" value="rgb(162, 63, 3)" style="background-color: rgb(162, 63, 3); color: rgb(221, 221, 221);">
 	<button id="createMap">Create Index</button>
-<div class="divTable" style="border: 1px solid #000;">
-	<div class="divTableBody" id="divTableBody">
+	<button id="clearButton">Clear</button>
+	<div class="divTable" style="border: 1px solid #000;">
+		<div class="divTableBody" id="divTableBody">
 
+		</div>
 	</div>
-</div>
-<script type="text/javascript">
-
-function createGrid(columns, rows){
-	for(var rowIndex = 0; rowIndex < rows; rowIndex++){
-		var row = $( "<div class='divTableRow' data-ycord='" + rowIndex + "'></div>");
-		row.appendTo('#divTableBody');
-		for(var columnIndex = 0; columnIndex < columns; columnIndex++){
-			$( "<div class='divTableCell' style='background-color: rgb(0, 0, 0)' data-xcord='" + columnIndex + "' >&nbsp;</div>").appendTo(row);
+	<script type="text/javascript">
+		function createGrid(columns, rows) {
+			for (var rowIndex = 0; rowIndex < rows; rowIndex++) {
+				var row = $("<div class='divTableRow' data-ycord='" + rowIndex + "'></div>");
+				row.appendTo('#divTableBody');
+				for (var columnIndex = 0; columnIndex < columns; columnIndex++) {
+					$("<div class='divTableCell unselectable' style='background-color: rgb(0, 0, 0)' data-xcord='" + columnIndex + "' >&nbsp;</div>").appendTo(row);
+				}
+			}
 		}
-	}
-}
 
-$( document ).ready(function() {
-    createGrid(64, 32);
-		$( ".divTableCell" ).click(function() {
-			var colourVal = $(".color").val();
-			$(this).css('background-color', colourVal);
-			sendWebsocketMessage(this, colourVal);
+		$(document).ready(function() {
+
+			document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        }, false);
+
+			createGrid(64, 32);
+			// $(".divTableCell").click(function() {
+			// 	handleCellChange(this, $(".color").val(););
+			// });
+			//
+			// $(".divTableCell").on("mousedown", function(e) {
+			// 	console.log(e.buttons);
+			// 	"rgb(0, 0, 0)";
+			// });
+
+			$(".divTableCell").on("mousedown mouseenter", function(e) {
+				if (e.buttons == 1) {
+					handleCellChange(this, $(".color").val());
+				} else if (e.buttons == 2){
+					handleCellChange(this, "rgb(0, 0, 0)");
+				}
+			});
+
+
 		});
-});
 
-function sendWebsocketMessage(element, colourVal){
-	var xCord = $(element).data('xcord');
-	var yCord = $(element).parent().data('ycord');
-	console.log('xCord: ' + xCord);
-	console.log('yCord: ' + yCord);
+		function handleCellChange(element, colourVal) {
+			$(element).css('background-color', colourVal);
+			sendWebsocketMessage(element, colourVal);
+		}
 
-	var convertedColour = convertColourToRGB565(colourVal);
-	console.log('convertedColour: ' + convertedColour);
+		function sendWebsocketMessage(element, colourVal) {
+			var xCord = $(element).data('xcord');
+			var yCord = $(element).parent().data('ycord');
+			console.log('xCord: ' + xCord);
+			console.log('yCord: ' + yCord);
 
-	var message = xCord + ',';
-	message += yCord + ',';
-	message += '0x' + convertedColour;
+			var convertedColour = convertColourToRGB565(colourVal);
+			console.log('convertedColour: ' + convertedColour);
 
-	exampleSocket.send(message);
-}
+			var message = xCord + ',';
+			message += yCord + ',';
+			message += '0x' + convertedColour;
 
-function convertColourToRGB565(colour){
-	var match = colour.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d?))\))?/);
-	var colourInt = ((parseInt(match[1]) & 0xF8) << 8) | ((parseInt(match[2]) & 0xFC) << 3) | (parseInt(match[3]) >> 3);
-	return colourInt.toString(16);
-}
+			exampleSocket.send(message);
+		}
 
-var exampleSocket = new WebSocket("ws://192.168.1.31:81");
+		function convertColourToRGB565(colour) {
+			var match = colour.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d?))\))?/);
+			var colourInt = ((parseInt(match[1]) & 0xF8) << 8) | ((parseInt(match[2]) & 0xFC) << 3) | (parseInt(match[3]) >> 3);
+			return colourInt.toString(16);
+		}
 
-$( "#createMap" ).click(function() {
+		var exampleSocket = new WebSocket("ws://192.168.1.31:81");
 
-	for (i = 1; i < 101; i++) {
-    text = "#cell" + i;
-	cval = $("#cell" + i).css('background-color');
-	text2 = getRGB(cval);
-	$( ".output" ).append( text2 );
-}
-});
+		$("#clearButton").click(function() {
+			exampleSocket.send("CLEAR");
+			$(".divTableCell").css('background-color', "rgb(0, 0, 0)");
+		});
 
-$( ".color" ).colorPicker({
-	forceAlpha: false
+		$("#createMap").click(function() {
 
-});
-</script>
+			for (i = 1; i < 101; i++) {
+				text = "#cell" + i;
+				cval = $("#cell" + i).css('background-color');
+				text2 = getRGB(cval);
+				$(".output").append(text2);
+			}
+		});
+
+		$(".color").colorPicker({
+			forceAlpha: false
+
+		});
+	</script>
 	<p class="output"></p>
 </body>
+
 </html>
