@@ -72,7 +72,7 @@
 
 <body>
 	<input class="color no-alpha" value="rgb(162, 63, 3)" style="background-color: rgb(162, 63, 3); color: rgb(221, 221, 221);">
-	<button id="createMap">Create Index</button>
+	<button id="createMap">Copy code to clipboard</button>
 	<button id="clearButton">Clear</button>
 	<div class="divTable" style="border: 1px solid #000;">
 		<div class="divTableBody" id="divTableBody">
@@ -85,10 +85,14 @@
 				var row = $("<div class='divTableRow' data-ycord='" + rowIndex + "'></div>");
 				row.appendTo('#divTableBody');
 				for (var columnIndex = 0; columnIndex < columns; columnIndex++) {
-					$("<div class='divTableCell unselectable' style='background-color: rgb(0, 0, 0)' data-xcord='" + columnIndex + "' >&nbsp;</div>").appendTo(row);
+					var cellNumber = rowIndex * columns + columnIndex;
+					$("<div class='divTableCell unselectable' id='cell"+ cellNumber +"' style='background-color: rgb(0, 0, 0)' data-xcord='" + columnIndex + "' >&nbsp;</div>").appendTo(row);
 				}
 			}
 		}
+
+		var displayWidth = 64;
+		var displayHeight = 32;
 
 		$(document).ready(function() {
 
@@ -96,7 +100,7 @@
             e.preventDefault();
         }, false);
 
-			createGrid(64, 32);
+			createGrid(displayWidth, displayHeight);
 			// $(".divTableCell").click(function() {
 			// 	handleCellChange(this, $(".color").val(););
 			// });
@@ -141,10 +145,23 @@
 		function convertColourToRGB565(colour) {
 			var match = colour.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d?))\))?/);
 			var colourInt = ((parseInt(match[1]) & 0xF8) << 8) | ((parseInt(match[2]) & 0xFC) << 3) | (parseInt(match[3]) >> 3);
-			return colourInt.toString(16);
+			var convertedColour = colourInt.toString(16);
+			for (var colourPadIndex = 0; (convertedColour.length + colourPadIndex) < 4; colourPadIndex++){
+				convertedColour = '0' + convertedColour;
+			}
+			return convertedColour.toUpperCase();
 		}
 
-		var exampleSocket = new WebSocket("ws://192.168.1.31:81");
+		function copyToClipboard(text){
+			var dummy = document.createElement("input");
+			document.body.appendChild(dummy);
+			dummy.setAttribute('value', text);
+			dummy.select();
+			document.execCommand("copy");
+			document.body.removeChild(dummy);
+		}
+
+		var exampleSocket = new WebSocket("ws://192.168.1.18:81");
 
 		$("#clearButton").click(function() {
 			exampleSocket.send("CLEAR");
@@ -152,13 +169,19 @@
 		});
 
 		$("#createMap").click(function() {
-
-			for (i = 1; i < 101; i++) {
+			var textOutput = "uint16_t static picture[] = {";
+			for (i = 0; i < displayWidth * displayHeight; i++) {
 				text = "#cell" + i;
 				cval = $("#cell" + i).css('background-color');
-				text2 = getRGB(cval);
-				$(".output").append(text2);
+				var convertedColour = convertColourToRGB565(cval);
+				if(i > 0){
+					textOutput += ',';
+				}
+				textOutput += ' 0x' + convertedColour;
 			}
+			textOutput += '};'
+			copyToClipboard(textOutput);
+			$(".output").html("Copied to clipboard");
 		});
 
 		$(".color").colorPicker({
