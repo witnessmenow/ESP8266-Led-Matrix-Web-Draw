@@ -30,7 +30,7 @@ Huge thanks to David Watts for providing the base for the web interface code! Ch
 ### Next steps
 
 - Put web interface on ESP8266
-- Add support for dragging the cursor to paint many squares
+- ~~Add support for dragging the cursor to paint many squares~~ - Done
 - Add ability to sync display to web interface
 - Add the ability to load/save drawings
 - Add Export to code option
