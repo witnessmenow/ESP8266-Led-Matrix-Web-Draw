@@ -3,6 +3,8 @@
 
     Written by Brian Lough
     https://www.youtube.com/channel/UCezJOfu7OtqGzd5xrP3q6WA
+
+    June 5th, 2018 - Added !rect, !line & !circle - Seon Rozenblum (Unexpected maker)
  *******************************************************************/
 
 #include "secret.h"
@@ -29,6 +31,7 @@
 // Needs to be manually downloaded and installed
 // https://github.com/2dom/PxMatrix
 
+#define ELEMENTS(x)   (sizeof(x) / sizeof(x[0]))
 
 Ticker display_ticker;
 
@@ -55,12 +58,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
   char xArray[4];
   int x;
   int y;
+  int w;
+  int h;
   uint16_t colour;
   int commaCount = 0;
   String inPayload;
   String colourString;
-  int firstComma;
-  int secondComma;
+
+  int commas[] = {-1,-1,-1,-1}; // using 4 for now
+  int command;
   switch (type) {
     case WStype_DISCONNECTED:
       Serial.printf("[%u] Disconnected!\n", num);
@@ -82,13 +88,72 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       if (inPayload == "CLEAR") {
         clearDisplay();
       } else {
-        firstComma = inPayload.indexOf(",");
-        secondComma = inPayload.lastIndexOf(",");
 
-        x = inPayload.substring(0, firstComma).toInt();
-        y = inPayload.substring(firstComma + 1, secondComma).toInt();
-        colourString = inPayload.substring(secondComma + 1);
-        colour = strtol(colourString.c_str(), NULL, 0);
+        // clear commas
+        // need to makr this use size of
+        for ( int i = 0; i < ELEMENTS(commas); i++ )
+          commas[i] = -1;
+
+        // grab all comma positions
+        int commaIndex = 0;
+        for (int i = 0; i < inPayload.length(); i++ )
+        {
+          if ( inPayload.substring(i, 1 ) == "," )
+            commas[ commaIndex++ ] = i;
+        }
+        
+        /* commands
+        0 = draw
+        1 = rect
+        2 = line
+        3 = cirle
+        4 = text ?????
+        */
+
+        // grab command
+        int commandSeperator = inPayload.indexOf(":");
+        command = inPayload.substring(0,commandSeperator).toInt();
+        
+        x = inPayload.substring(commandSeperator+1, commas[0]).toInt();
+        y = inPayload.substring(commas[0] + 1, commas[1]).toInt();
+
+        if ( command == 0 ) // draw pixel
+        {
+          colourString = inPayload.substring(commas[1] + 1);
+          colour = strtol(colourString.c_str(), NULL, 0);
+          display.drawPixel(x , y, colour);
+        }
+        else if ( command == 1 ) // rect
+        {
+          w = inPayload.substring(commas[1] + 1, commas[2]).toInt();
+          h = inPayload.substring(commas[2] + 1, commas[3]).toInt();
+          colourString = inPayload.substring(commas[3] + 1);
+          colour = strtol(colourString.c_str(), NULL, 0);
+
+          display.drawRect( x, y, w, h, colour );
+
+        }
+        else if ( command == 2 ) // line
+        {
+          w = inPayload.substring(commas[1] + 1, commas[2]).toInt();
+          h = inPayload.substring(commas[2] + 1, commas[3]).toInt();
+          colourString = inPayload.substring(commas[3] + 1);
+          colour = strtol(colourString.c_str(), NULL, 0);
+
+          display.drawLine( x, y, w, h, colour );
+        }
+        else if ( command == 3 ) // circle
+        {
+          w = inPayload.substring(commas[1] + 1, commas[2]).toInt();
+          colourString = inPayload.substring(commas[3] + 1);
+          colour = strtol(colourString.c_str(), NULL, 0);
+
+          display.drawCircle( x, y, w, colour );
+        }
+
+
+        
+
 
         // Serial.print("X: ");
         // Serial.println(x);
@@ -97,7 +162,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         // Serial.print("Colour: ");
         // Serial.println(colour, HEX);
 
-        display.drawPixel(x , y, colour);
+
       }
 
 
