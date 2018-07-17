@@ -83,7 +83,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     case WStype_TEXT:
       // Serial.printf("[%u] get Text: %s\n", num, payload);
       inPayload = String((char *) payload);
-      // Serial.println(inPayload);
+      Serial.println(inPayload);
 
       if (inPayload == "CLEAR") {
         clearDisplay();
@@ -98,7 +98,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         int commaIndex = 0;
         for (int i = 0; i < inPayload.length(); i++ )
         {
-          if ( inPayload.substring(i, 1 ) == "," )
+          if ( inPayload[i] == ',' )
             commas[ commaIndex++ ] = i;
         }
         
@@ -113,14 +113,21 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         // grab command
         int commandSeperator = inPayload.indexOf(":");
         command = inPayload.substring(0,commandSeperator).toInt();
+        Serial.println(command);
         
         x = inPayload.substring(commandSeperator+1, commas[0]).toInt();
         y = inPayload.substring(commas[0] + 1, commas[1]).toInt();
 
+        Serial.print(x);
+        Serial.print(",");
+        Serial.println(y);
+      
         if ( command == 0 ) // draw pixel
         {
           colourString = inPayload.substring(commas[1] + 1);
+          Serial.println(colourString);
           colour = strtol(colourString.c_str(), NULL, 0);
+          Serial.println(colour);
           display.drawPixel(x , y, colour);
         }
         else if ( command == 1 ) // rect
@@ -145,7 +152,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         else if ( command == 3 ) // circle
         {
           w = inPayload.substring(commas[1] + 1, commas[2]).toInt();
-          colourString = inPayload.substring(commas[3] + 1);
+          colourString = inPayload.substring(commas[2] + 1);
           colour = strtol(colourString.c_str(), NULL, 0);
 
           display.drawCircle( x, y, w, colour );
